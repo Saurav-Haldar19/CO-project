@@ -107,7 +107,7 @@ var={}
 mem={}
 labels={}
 error=False
-f=open("test.txt","r")
+f=open("test1.txt","r")
 lines=[]
 addresses={}
 for line in f.readlines():
@@ -117,7 +117,7 @@ f.close()
 for i in range(len(lines)):
     if (i!=0) and (lines[i].strip().split()[0]=="var") and (lines[i-1].strip().split()[0]!="var"):
         error=True
-        error_name=f"Error : Variable not defined at beginning of code at line no {i+1}"
+        error_name=f"Error in line {i+1} : Variable not defined at beginning of code"
         break
 i=0
 for line in lines:
@@ -142,7 +142,7 @@ for i,j in addresses.items():
         cin=j.split()[0].index(":")
         labels[j.split()[0][:cin]]=i
 temp=[]
-f=open("test.txt","r")
+f=open("test1.txt","r")
 for line in f.readlines():
     if line.strip()!="" and line.strip().split()[0]!="var":
         temp.append(line.strip())
@@ -155,416 +155,496 @@ for lines in temp:
     t=""
     if ":" not in line[0]:
         if "add" in line[0]:
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+            if len(line)!=4:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} in line {line_no} : add must contain 3 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} in line no {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["add"]+"00"+reg[line[1]]+reg[line[2]]+reg[line[3]]
         elif "sub" in line[0]:
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+            if len(line)!=4:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} in line {line_no} : sub must contain 3 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} in line no {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["sub"]+"00"+reg[line[1]]+reg[line[2]]+reg[line[3]]
         elif ("mov" in line[0]) and ("$"==line[2][0]):
-            if "." in line[2][1:]:
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Illegal immediate value (floating point number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : mov must contain 2 parameters"
+                break
+            elif "." in line[2][1:]:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value (floating point number)"
                 break
             elif int(line[2][1:])>127:
                 error=True
-                error_name=f"Error : Illegal immediate value (more than 7 bits) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (more than 7 bits)"
                 break
             elif int(line[2][1:])<0:
                 error=True
-                error_name=f"Error : Illegal immediate value (-ve number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
                 break
             elif line[1]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["movi"]+"0"+reg[line[1]]+format(int(line[2][1:]),"07b")
         elif ("mov" in line[0]) and ("$"!=line[2][0]):
-            if line[1]=="FLAGS":
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : mov must contain 2 parameters"
+                break
+            elif line[1]=="FLAGS":
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["mov"]+"00000"+reg[line[1]]+reg[line[2]]
         elif "ld" in line[0]:
-            if (line[2] not in mem) and (line[2] not in labels):
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Use of undefined variable on line no {line_no}"
+                error_name=f"Error in line {line_no} : ld must contain 2 parameters"
+                break
+            elif (line[2] not in mem) and (line[2] not in labels):
+                error=True
+                error_name=f"Error in line {line_no} in line {line_no} : Use of undefined variable"
                 break
             elif (line[2] not in mem) and (line[2] in labels):
                 error=True
-                error_name=f"Error : Misuse of label as variable on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of label as variable"
                 break
             elif line[1]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["ld"]+"0"+reg[line[1]]+mem[line[2]]
         elif "st" in line[0]:
-            if (line[2] not in mem) and (line[2] not in labels):
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Use of undefined variable on line no {line_no}"
+                error_name=f"Error in line {line_no} : st must contain 2 parameters"
+                break
+            elif (line[2] not in mem) and (line[2] not in labels):
+                error=True
+                error_name=f"Error in line {line_no} : Use of undefined variable"
                 break
             elif (line[2] not in mem) and (line[2] in labels):
                 error=True
-                error_name=f"Error : Misuse of label as variable on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of label as variable"
                 break
             elif line[1]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["st"]+"0"+reg[line[1]]+mem[line[2]]
         elif "mul" in line[0]:
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+            if len(line)!=4:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : mul must contain 3 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["mul"]+"00"+reg[line[1]]+reg[line[2]]+reg[line[3]]
         elif "div" in line[0]:
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS"):
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : div must contain 2 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["div"]+"00000"+reg[line[1]]+reg[line[2]]
         elif "rs" in line[0]:
-            if "." in line[2][1:]:
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Illegal immediate value (floating point number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : rs must contain 2 parameters"
+                break
+            elif "." in line[2][1:]:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value (floating point number)"
                 break
             elif int(line[2][1:])>127:
                 error=True
-                error_name=f"Error : Illegal immediate value (more than 7 bits) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (more than 7 bits)"
                 break
             elif int(line[2][1:])<0:
                 error=True
-                error_name=f"Error : Illegal immediate value (-ve number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
                 break
             elif line[1]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["rs"]+"0"+reg[line[1]]+format(int(line[2][1:]),"07b")
         elif "ls" in line[0]:
-            if "." in line[2][1:]:
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Illegal immediate value (floating point number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : ls must contain 2 parameters"
+                break
+            elif "." in line[2][1:]:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value (floating point number)"
                 break
             elif int(line[2][1:])>127:
                 error=True
-                error_name=f"Error : Illegal immediate value (more than 7 bits) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (more than 7 bits)"
                 break
             elif int(line[2][1:])<0:
                 error=True
-                error_name=f"Error : Illegal immediate value (-ve number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
                 break
             elif line[1]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["ls"]+"0"+reg[line[1]]+format(int(line[2][1:]),"07b")
         elif "xor" in line[0]:
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+            if len(line)!=4:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : xor must contain 3 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["xor"]+"00"+reg[line[1]]+reg[line[2]]+reg[line[3]]
         elif ("xor" not in line[0]) and ("or" in line[0]):
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+            if len(line)!=4:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : or must contain 3 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["or"]+"00"+reg[line[1]]+reg[line[2]]+reg[line[3]]
         elif "and" in line[0]:
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+            if len(line)!=4:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : and must contain 3 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["and"]+"00"+reg[line[1]]+reg[line[2]]+reg[line[3]]
         elif "not" in line[0]:
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS"):
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : not must contain 2 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["not"]+"00000"+reg[line[1]]+reg[line[2]]
         elif "cmp" in line[0]:
-            if (line[1]=="FLAGS") or (line[2]=="FLAGS"):
+            if len(line)!=3:
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : cmp must contain 2 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["cmp"]+"00000"+reg[line[1]]+reg[line[2]]
         elif "jmp" in line[0]:
-            if (line[1] not in labels) and (line[1] not in mem):
+            if len(line)!=2:
                 error=True
-                error_name=f"Error : Use of undefined label on line no {line_no}"
+                error_name=f"Error in line {line_no} : jmp must contain 1 parameters"
+                break
+            elif (line[1] not in labels) and (line[1] not in mem):
+                error=True
+                error_name=f"Error in line {line_no} : Use of undefined label"
                 break
             elif (line[1] not in labels) and (line[1] in mem):
                 error=True
-                error_name=f"Error : Misuse of variable as label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of variable as label"
                 break
             else:
                 t+=op["jmp"]+"0000"+labels[line[1]]
         elif "jlt" in line[0]:
-            if (line[1] not in labels) and (line[1] not in mem):
+            if len(line)!=2:
                 error=True
-                error_name=f"Error : Use of undefined label on line no {line_no}"
+                error_name=f"Error in line {line_no} : jlt must contain 1 parameters"
+                break
+            elif (line[1] not in labels) and (line[1] not in mem):
+                error=True
+                error_name=f"Error in line {line_no} : Use of undefined label"
                 break
             elif (line[1] not in labels) and (line[1] in mem):
                 error=True
-                error_name=f"Error : Misuse of variable as label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of variable as label"
                 break
             else:
                 t+=op["jlt"]+"0000"+labels[line[1]]
         elif "jgt" in line[0]:
-            if (line[1] not in labels) and (line[1] not in mem):
+            if len(line)!=2:
                 error=True
-                error_name=f"Error : Use of undefined label on line no {line_no}"
+                error_name=f"Error in line {line_no} : jgt must contain 1 parameters"
+                break
+            elif (line[1] not in labels) and (line[1] not in mem):
+                error=True
+                error_name=f"Error in line {line_no} : Use of undefined label"
                 break
             elif (line[1] not in labels) and (line[1] in mem):
                 error=True
-                error_name=f"Error : Misuse of variable as label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of variable as label"
                 break
             else:
                 t+=op["jgt"]+"0000"+labels[line[1]]
         elif "je" in line[0]:
-            if (line[1] not in labels) and (line[1] not in mem):
+            if len(line)!=2:
                 error=True
-                error_name=f"Error : Use of undefined label on line no {line_no}"
+                error_name=f"Error in line {line_no} : je must contain 1 parameters"
+                break
+            elif (line[1] not in labels) and (line[1] not in mem):
+                error=True
+                error_name=f"Error in line {line_no} : Use of undefined label"
                 break
             elif (line[1] not in labels) and (line[1] in mem):
                 error=True
-                error_name=f"Error : Misuse of variable as label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of variable as label"
                 break
             else:
                 t+=op["je"]+"0000"+labels[line[1]]
         elif "hlt" in line[0]:
+            if len(line)!=1:
+                error=True
+                error_name=f"Error in line {line_no} : hlt must contain 1 parameters"
+                break
             hlt_count+=1
             if line_no!=len(temp)+len(mem):
                 error=True
-                error_name=f"Error : hlt not being used as the last intruction on line no {line_no}"
+                error_name=f"Error in line {line_no} : hlt not being used as the last intruction"
                 break
             t+=op["hlt"]+"00000000000"
         else:
             error=True
-            error_name=f"Error : Typos in instruction name or register name on line no {line_no}"
+            error_name=f"Error in line {line_no} : Typos in instruction name or register name"
             break
     else:
         if "add" in line[1]:
             if (line[2]=="FLAGS") or (line[3]=="FLAGS") or (line[4]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["add"]+"00"+reg[line[2]]+reg[line[3]]+reg[line[4]]
         elif "sub" in line[1]:
             if (line[2]=="FLAGS") or (line[3]=="FLAGS") or (line[4]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["sub"]+"00"+reg[line[2]]+reg[line[3]]+reg[line[4]]
         elif ("mov" in line[1]) and ("$"==line[3][0]):
             if "." in line[3][1:]:
                 error=True
-                error_name=f"Error : Illegal immediate value (floating point number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (floating point number)"
                 break
             elif int(line[3][1:])>127:
                 error=True
-                error_name=f"Error : Illegal immediate value (more than 7 bits) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (more than 7 bits)"
                 break
             elif int(line[3][1:])<0:
                 error=True
-                error_name=f"Error : Illegal immediate value (-ve number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
                 break
             elif line[2]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["movi"]+"0"+reg[line[2]]+format(int(line[3][1:]),"07b")
         elif ("mov" in line[1]) and ("$"!=line[3][0]):
             if line[2]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["mov"]+"00000"+reg[line[2]]+reg[line[3]]
         elif "ld" in line[1]:
             if (line[3] not in mem) and (line[3] not in labels):
                 error=True
-                error_name=f"Error : Use of undefined variable on line no {line_no}"
+                error_name=f"Error in line {line_no} : Use of undefined variable"
                 break
             elif (line[3] not in mem) and (line[3] in labels):
                 error=True
-                error_name=f"Error : Misuse of label as variable on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of label as variable"
                 break
             elif line[2]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["ld"]+"0"+reg[line[2]]+mem[line[3]]
         elif "st" in line[1]:
             if (line[3] not in mem) and (line[3] not in labels):
                 error=True
-                error_name=f"Error : Use of undefined variable on line no {line_no}"
+                error_name=f"Error in line {line_no} : Use of undefined variable"
                 break
             elif (line[3] not in mem) and (line[3] in labels):
                 error=True
-                error_name=f"Error : Misuse of label as variable on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of label as variable"
                 break
             elif line[2]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["st"]+"0"+reg[line[2]]+mem[line[3]]
         elif "mul" in line[1]:
             if (line[2]=="FLAGS") or (line[3]=="FLAGS") or (line[4]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["mul"]+"00"+reg[line[2]]+reg[line[3]]+reg[line[4]]
         elif "div" in line[1]:
             if (line[2]=="FLAGS") or (line[3]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["div"]+"00000"+reg[line[2]]+reg[line[3]]
         elif "rs" in line[1]:
             if "." in line[3][1:]:
                 error=True
-                error_name=f"Error : Illegal immediate value (floating point number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (floating point number)"
                 break
             elif int(line[3][1:])>127:
                 error=True
-                error_name=f"Error : Illegal immediate value (more than 7 bits) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (more than 7 bits)"
                 break
             elif int(line[3][1:])<0:
                 error=True
-                error_name=f"Error : Illegal immediate value (-ve number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
                 break
             elif line[2]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["rs"]+"0"+reg[line[2]]+format(int(line[3][1:]),"07b")
         elif "ls" in line[1]:
             if "." in line[3][1:]:
                 error=True
-                error_name=f"Error : Illegal immediate value (floating point number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (floating point number)"
                 break
             elif int(line[3][1:])>127:
                 error=True
-                error_name=f"Error : Illegal immediate value (more than 7 bits) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (more than 7 bits)"
                 break
             elif int(line[3][1:])<0:
                 error=True
-                error_name=f"Error : Illegal immediate value (-ve number) on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
                 break
             elif line[2]=="FLAGS":
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["ls"]+"0"+reg[line[2]]+format(int(line[3][1:]),"07b")
         elif "xor" in line[1]:
             if (line[2]=="FLAGS") or (line[3]=="FLAGS") or (line[4]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["xor"]+"00"+reg[line[2]]+reg[line[3]]+reg[line[4]]
         elif ("xor" not in line[1]) and ("or" in line[1]):
             if (line[2]=="FLAGS") or (line[3]=="FLAGS") or (line[4]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["or"]+"00"+reg[line[2]]+reg[line[3]]+reg[line[4]]
         elif "and" in line[1]:
             if (line[2]=="FLAGS") or (line[3]=="FLAGS") or (line[4]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["and"]+"00"+reg[line[2]]+reg[line[3]]+reg[line[4]]
         elif "not" in line[1]:
             if (line[2]=="FLAGS") or (line[3]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["not"]+"00000"+reg[line[2]]+reg[line[3]]
         elif "cmp" in line[1]:
             if (line[2]=="FLAGS") or (line[3]=="FLAGS"):
                 error=True
-                error_name=f"Error : Illegal use of FLAGS register on line no {line_no}"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             else:
                 t+=op["cmp"]+"00000"+reg[line[2]]+reg[line[3]]
         elif "jmp" in line[1]:
             if (line[2] not in labels) and (line[2] not in mem):
                 error=True
-                error_name=f"Error : Use of undefined label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Use of undefined label"
                 break
             elif (line[2] not in labels) and (line[2] in mem):
                 error=True
-                error_name=f"Error : Misuse of variable as label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of variable as label"
                 break
             else:
                 t+=op["jmp"]+"0000"+labels[line[2]]
         elif "jlt" in line[1]:
             if (line[2] not in labels) and (line[2] not in mem):
                 error=True
-                error_name=f"Error : Use of undefined label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Use of undefined label"
                 break
             elif (line[2] not in labels) and (line[2] in mem):
                 error=True
-                error_name=f"Error : Misuse of variable as label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of variable as label"
                 break
             else:
                 t+=op["jlt"]+"0000"+labels[line[2]]
         elif "jgt" in line[1]:
             if (line[2] not in labels) and (line[2] not in mem):
                 error=True
-                error_name=f"Error : Use of undefined label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Use of undefined label"
                 break
             elif (line[2] not in labels) and (line[2] in mem):
                 error=True
-                error_name=f"Error : Misuse of variable as label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of variable as label"
                 break
             else:
                 t+=op["jgt"]+"0000"+labels[line[2]]
         elif "je" in line[1]:
             if (line[2] not in labels) and (line[2] not in mem):
                 error=True
-                error_name=f"Error : Use of undefined label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Use of undefined label"
                 break
             elif (line[2] not in labels) and (line[2] in mem):
                 error=True
-                error_name=f"Error : Misuse of variable as label on line no {line_no}"
+                error_name=f"Error in line {line_no} : Misuse of variable as label"
                 break
             else:
                 t+=op["je"]+"0000"+labels[line[2]]
@@ -572,12 +652,12 @@ for lines in temp:
             hlt_count+=1
             if line_no!=len(temp)+len(mem):
                 error=True
-                error_name=f"Error : hlt not being used as the last intruction on line no {line_no}"
+                error_name=f"Error in line {line_no} : hlt not being used as the last intruction"
                 break
             t+=op["hlt"]+"00000000000"
         else:
             error=True
-            error_name=f"Error : Typos in instruction name or register name on line no {line_no}"
+            error_name=f"Error in line {line_no} : Typos in instruction name or register name"
             break
     ans.append(t)
     line_no+=1
@@ -588,7 +668,7 @@ if error:
 if not error:
     if hlt_count==0:
         error=True
-        error_name="Error : Missing hlt instruction in assembly code"
+        error_name="Error in line {line_no} : Missing hlt instruction in assembly code"
     if error:
         f=open("output.txt","w")
         f.write(error_name)
