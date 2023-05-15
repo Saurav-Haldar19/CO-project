@@ -138,6 +138,7 @@ for line in lines:
 for i,j in addresses.items():
     if j.split()[0]=="var":
         mem[j.split()[1]]=i
+        var[j.split()[1]]="0000000"
     if ":" in j:
         cin=j.split()[0].index(":")
         labels[j.split()[0][:cin]]=i
@@ -161,7 +162,7 @@ for lines in temp:
                 break
             elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
                 error=True
-                error_name=f"Error in line {line_no} in line no {line_no} : Illegal use of FLAGS register"
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
                 break
             elif (line[1] not in reg) or (line[2] not in reg) or (line[3] not in reg):
                 error=True
@@ -172,7 +173,7 @@ for lines in temp:
         elif "sub" == line[0]:
             if len(line)!=4:
                 error=True
-                error_name=f"Error in line {line_no} in line {line_no} : sub must contain 3 parameters"
+                error_name=f"Error in line {line_no} : sub must contain 3 parameters"
                 break
             elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
                 error=True
@@ -237,7 +238,7 @@ for lines in temp:
                 break
             elif (line[2] not in mem) and (line[2] not in labels):
                 error=True
-                error_name=f"Error in line {line_no} in line {line_no} : Use of undefined variable"
+                error_name=f"Error in line {line_no} : Use of undefined variable"
                 break
             elif (line[2] not in mem) and (line[2] in labels):
                 error=True
