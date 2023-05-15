@@ -6,3 +6,5 @@ Then we have initialised dictionaries op(which stores the opcodes), reg(which st
 Then we have read the file line by line assigned addresses to every instruction, labels and variables.
 Then if no error is encountered we have converted the code in machine code and after that we have updated all the register values and variable values and checked for overflows if any happens we upadte the FLAGS register after each instruction.
 And then finally if there is no error the machine code is written on the binary file else the error name with the line no is written on the output file.
+
+P.S. the input file is opened twice in the program at two different lines so when executing please change the file names at both locations
