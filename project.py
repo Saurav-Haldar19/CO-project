@@ -113,7 +113,6 @@ while True:
     try:
         testline=input()
         test.append(testline)
-        testline=testline.split()
     except EOFError:
         break
 addresses={}
