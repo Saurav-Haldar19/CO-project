@@ -107,13 +107,19 @@ var={}
 mem={}
 labels={}
 error=False
-f=open("test1.txt","r")
 lines=[]
+test=[]
+while True:
+    try:
+        testline=input()
+        test.append(testline)
+        testline=testline.split()
+    except EOFError:
+        break
 addresses={}
-for line in f.readlines():
+for line in test:
     if line.strip()!="":
         lines.append(line.strip())
-f.close()
 for i in range(len(lines)):
     if (i!=0) and (lines[i].strip().split()[0]=="var") and (lines[i-1].strip().split()[0]!="var"):
         error=True
@@ -143,11 +149,9 @@ for i,j in addresses.items():
         cin=j.split()[0].index(":")
         labels[j.split()[0][:cin]]=i
 temp=[]
-f=open("test1.txt","r")
-for line in f.readlines():
+for line in test:
     if line.strip()!="" and line.strip().split()[0]!="var":
         temp.append(line.strip())
-f.close()
 ans=[]
 hlt_count=0
 line_no=len(mem)+1
@@ -888,17 +892,13 @@ for lines in temp:
     ans.append(t)
     line_no+=1
 if error:
-    f=open("output.txt","w")
-    f.write(error_name)
-    f.close()
+    print(error_name)
 if not error:
     if hlt_count==0:
         error=True
-        error_name="Error in line {line_no} : Missing hlt instruction in assembly code"
+        error_name="Error : Missing hlt instruction in assembly code"
     if error:
-        f=open("output.txt","w")
-        f.write(error_name)
-        f.close()
+        print(error_name)
     else:
         pc=0
         flag=True
@@ -982,8 +982,7 @@ if not error:
                     pc=jmp(pc,temp[pc].split()[2],labels)
                     continue
             pc+=1
-        f=open("output.txt","w")
         for i in ans:
-            f.write(i+"\n")
-        f.close()
+            print(i)
+
 
