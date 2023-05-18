@@ -1,3 +1,5 @@
+import sys
+
 def movImm(regval,reg,temp):
     regval[reg]=format(int(temp),"016b")
 
@@ -108,13 +110,7 @@ mem={}
 labels={}
 error=False
 lines=[]
-test=[]
-while True:
-    try:
-        testline=input()
-        test.append(testline)
-    except EOFError:
-        break
+test=sys.stdin.readlines()
 addresses={}
 for line in test:
     if line.strip()!="":
