@@ -481,9 +481,9 @@ for lines in temp:
                 error=True
                 error_name=f"Error in line {line_no} : Illegal immediate value (more than 8 bits)"
                 break
-            elif float(line[2][1:])<0:
+            elif float(line[2][1:])<0.25:
                 error=True
-                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
+                error_name=f"Error in line {line_no} : Illegal immediate value"
                 break
             elif line[1]=="FLAGS":
                 error=True
@@ -905,9 +905,9 @@ for lines in temp:
                 error=True
                 error_name=f"Error in line {line_no} : Illegal immediate value (more than 8 bits)"
                 break
-            elif float(line[3][1:])<0:
+            elif float(line[3][1:])<0.25:
                 error=True
-                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
+                error_name=f"Error in line {line_no} : Illegal immediate value"
                 break
             elif line[2]=="FLAGS":
                 error=True
