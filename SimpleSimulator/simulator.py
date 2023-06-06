@@ -142,3 +142,68 @@ def je(program_counter,regval,address):
 def jmp(address):
     program_counter=address
     return program_counter    
+
+def addf(regval,reg1,reg2,reg3):
+    sum=bintofloat(regval[reg2][8:])+bintofloat(regval[reg3][8:])
+    binsum=floattobin(sum)
+    if binsum=='overflow':
+        regval["FLAGS"]="0000000000001000"
+        regval[reg1]="0000000000000000"
+        return True
+    else:
+        regval["FLAGS"]="0000000000000000"
+        regval[reg1]=(8*'0')+binsum
+        return False
+    
+def subf(regval,reg1,reg2,reg3):
+    dif=bintofloat(regval[reg2][8:])-bintofloat(regval[reg3][8:])
+    if dif<0.25 and dif!=0:
+        regval["FLAGS"]="0000000000001000"
+        regval[reg1]="0000000000000000"
+        return True
+    else:
+        bindif=floattobin(sum)
+        regval["FLAGS"]="0000000000000000"
+        regval[reg1]=(8*'0')+bindif
+        return False
+    
+def movf(regval,reg1,imm):
+    regval[reg1]=(8*'0')+imm
+
+    
+
+op={'00000': 'add', '00001': 'sub', '00010': 'movi', '00011': 'mov', '00100': 'ld', '00101': 'st', '00110': 'mul', '00111': 'div', '01000': 'rs', '01001': 'ls', '01010': 'xor', '01011': 'or', '01100': 'and', '01101': 'not', '01110': 'cmp', '01111': 'jmp', '11100': 'jlt', '11101': 'jgt', '11111': 'je', '11010': 'hlt','10000':'addf','10001':'subf','10010':'movf'}
+regval={"R0":"0000000000000000","R1":"0000000000000000","R2":"0000000000000000","R3":"0000000000000000","R4":"0000000000000000","R5":"0000000000000000","R6":"0000000000000000","FLAGS":"0000000000000000"}
+reg={'000': 'R0', '001': 'R1', '010': 'R2', '011': 'R3', '100': 'R4', '101': 'R5', '110': 'R6', '111': 'FLAGS'}
+memory=[]
+for i in range(128):
+    memory.append("0000000000000000")
+Input=sys.stdin
+instructions=[]
+for i in Input:
+    instructions.append(i.strip())
+for i in Input:
+    instructions.append(i.strip())
+typeA=["add","sub","mul","xor","or","and","addf","subf"]
+typeB=["movi","rs","ls","movf"]
+typeC=["mov","div","not","cmp"]
+typeD=["ld","st"]
+typeE=["jmp","jlt","jgt","je"]
+for i in range(len(instructions)):
+    instructions[i]=instructions[i].strip()
+    memory[i]=instructions[i]
+pc=0
+flag=False
+while (pc < len(instructions)):
+    jmpflag=False
+    opcode=op[instructions[pc][:5]]
+    if opcode in typeA:
+        reg1=reg[instructions[pc][7:10]]
+        reg2=reg[instructions[pc][10:13]]
+        reg3=reg[instructions[pc][13:]]
+        if opcode=="add":
+            if add(regval,reg1,reg2,reg3):
+                flag=True
+        elif opcode=="sub":
+            if sub(regval,reg1,reg2,reg3):
+                flag=True
