@@ -65,3 +65,80 @@ def invert(regval,reg1,reg2):
         elif regval[reg2][i]=="1":
             Not+="0"
     regval[reg1]=format(int(Not,2),"016b")
+
+def rshift(regval,reg1,num):
+    regval[reg1]=format(int(regval[reg1][9:],2)>>int(num),"016b")
+
+def lshift(regval,reg1,num):
+    regval[reg1]=format(int(regval[reg1][9:],2)<<int(num),"016b")
+
+def multiply(regval,reg1,reg2,reg3):
+    prod=int(regval[reg2][9:],2)*int(regval[reg3][9:],2)
+    if prod>127:
+        regval["FLAGS"]="0000000000001000"
+        regval[reg1]="0000000000000000"
+        return True
+    else:
+        regval["FLAGS"]="0000000000000000"
+        regval[reg1]=format(prod,"016b")
+        return False
+
+def divide(regval,reg1,reg2):
+    if regval[reg2]=="0000000000000000":
+        regval["FLAGS"]="0000000000001000"
+        regval["R0"]="0000000000000000"
+        regval["R1"]="0000000000000000"
+        return True
+    else:
+        regval["R0"]=format(int(regval[reg1][9:],2)//int(regval[reg2][9:],2),"016b")
+        regval["R1"]=format(int(regval[reg1][9:],2)%int(regval[reg2][9:],2),"016b")
+        regval["FLAGS"]="0000000000000000"
+        return False
+
+def add(regval, reg1, reg2, reg3):
+    sum=int(regval[reg2][9:],2)+int(regval[reg3][9:],2)
+    if sum>127:
+        regval["FLAGS"]="0000000000001000"
+        regval[reg1]="0000000000000000"
+        return True
+    else:
+        regval["FLAGS"]="0000000000000000"
+        regval[reg1]=format(sum,"016b")
+        return False
+
+def sub(regval, reg1, reg2, reg3):
+    if int(regval[reg3],2)>int(regval[reg2],2):
+        regval["FLAGS"]="0000000000001000"
+        regval[reg1]="0000000000000000"
+        return True
+    else:
+        regval["FLAGS"]="0000000000000000"
+        regval[reg1]=format(int(regval[reg2],2)-int(regval[reg3],2),"016b")
+        return False
+
+def cmp(regval,reg1,reg2):
+    if (regval[reg1]<regval[reg2]):
+        regval["FLAGS"]="0000000000000100"
+    elif (regval[reg1]>regval[reg2]):
+        regval["FLAGS"]="0000000000000010"
+    else:
+        regval["FLAGS"]="0000000000000001"
+
+def jlt(program_counter,regval,address):
+    if regval["FLAGS"][-3]=="1":
+        program_counter=address
+    return program_counter
+
+def jgt(program_counter,regval,address):
+    if regval["FLAGS"][-2]=="1":
+        program_counter=address
+    return program_counter
+
+def je(program_counter,regval,address):
+    if regval["FLAGS"][-1]=="1":
+        program_counter=address
+    return program_counter
+
+def jmp(address):
+    program_counter=address
+    return program_counter    
