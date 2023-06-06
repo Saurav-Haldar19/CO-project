@@ -1,108 +1,42 @@
 import sys
 
-def movImm(regval,reg,temp):
-    regval[reg]=format(int(temp),"016b")
-
-def movReg(regval,reg1,reg2):
-    regval[reg1]=regval[reg2]
-
-def load(regval,reg,var,address):
-    regval[reg]=var[address]
-
-def store(regval,reg,var,address):
-    var[address]=regval[reg]
-
-def xor(regval,reg1,reg2,reg3):
-    regval[reg1]=format(int(regval[reg2][9:],2) ^ int(regval[reg3][9:],2),"016b")
-
-def Or(regval,reg1,reg2,reg3):
-    regval[reg1]=format(int(regval[reg2][9:],2) | int(regval[reg3][9:],2),"016b")
-
-def And(regval,reg1,reg2,reg3):
-    regval[reg1]=format(int(regval[reg2][9:],2) & int(regval[reg3][9:],2),"016b")
-
-def invert(regval,reg1,reg2):
-    Not=""
-    for i in range(9,16):
-        if regval[reg2][i]=="0":
-            Not+="1"
-        elif regval[reg2][i]=="1":
-            Not+="0"
-    regval[reg1]=format(int(Not,2),"016b")
-
-def rshift(regval,reg1,num):
-    regval[reg1]=format(int(regval[reg1][9:],2)>>int(num),"016b")
-
-def lshift(regval,reg1,num):
-    regval[reg1]=format(int(regval[reg1][9:],2)<<int(num),"016b")
-
-def multiply(regval,reg1,reg2,reg3):
-    prod=int(regval[reg2][9:],2)*int(regval[reg3][9:],2)
-    if prod>127:
-        regval["FLAGS"]="0000000000001000"
-        regval[reg1]="0000000000000000"
+def floattobin(f):
+    if f==0:
+        return '00000000'
+    temp=str(f).split('.')
+    dec=bin(int(temp[0]))[2:]
+    floating=float('0.'+temp[1])
+    binfloat=""
+    for i in range(5):
+        floating*=2
+        if floating>=2:
+            floating=float('0.'+str(floating).split('.')[1])
+        binfloat=binfloat+str(int(floating))
+    exponent=len(dec)-1+3
+    mantissa=dec[1:]+binfloat
+    ans=(bin(exponent)[2:]+mantissa).rstrip('0')
+    numbits=len(ans)
+    if numbits>8:
+        return 'overflow'
+    elif numbits<8:
+        return ans+('0'*(8-len(ans)))
     else:
-        regval["FLAGS"]="0000000000000000"
-        regval[reg1]=format(prod,"016b")
+        return ans
 
-def divide(regval,reg1,reg2):
-    if regval[reg2]=="0000000000000000":
-        regval["FLAGS"]="0000000000001000"
-        regval["R0"]="0000000000000000"
-        regval["R1"]="0000000000000000"
-    else:
-        regval["R0"]=format(int(regval[reg1][9:],2)//int(regval[reg2][9:],2),"016b")
-        regval["R1"]=format(int(regval[reg1][9:],2)%int(regval[reg2][9:],2),"016b")
-        regval["FLAGS"]="0000000000000000"
 
-def add(regval, reg1, reg2, reg3):
-    sum=int(regval[reg2][9:],2)+int(regval[reg3][9:],2)
-    if sum>127:
-        regval["FLAGS"]="0000000000001000"
-        regval[reg1]="0000000000000000"
-    else:
-        regval["FLAGS"]="0000000000000000"
-        regval[reg1]=format(sum,"016b")
+def bintofloat(b):
+    if b=='00000000':
+        return 0.0
+    exponent=b[:3]
+    mantissa=b[3:]
+    power=int(exponent,2)-3
+    floating=0
+    for i in range(5):
+        floating=floating+int(mantissa[i])*(2**(-(i+1)))
+    ans=(1+floating)*(2**(power))
+    return ans
 
-def sub(regval, reg1, reg2, reg3):
-    if int(regval[reg3],2)>int(regval[reg2],2):
-        regval["FLAGS"]="0000000000001000"
-        regval[reg1]="0000000000000000"
-    else:
-        regval["FLAGS"]="0000000000000000"
-        regval[reg1]=format(int(regval[reg2],2)-int(regval[reg3],2),"016b")
-
-def cmp(regval,reg1,reg2):
-    if (regval[reg1]<regval[reg2]):
-        regval["FLAGS"]="0000000000000100"
-    elif (regval[reg1]>regval[reg2]):
-        regval["FLAGS"]="0000000000000010"
-    else:
-        regval["FLAGS"]="0000000000000001"
-
-def jlt(regval,pc,address,labels):
-    if regval["FLAGS"][-3]=="1":
-        pc=int(labels[address],2)
-        return pc
-    return pc+1
-
-def jgt(regval,pc,address,labels):
-    if regval["FLAGS"][-2]=="1":
-        pc=int(labels[address],2)
-        return pc
-    return pc+1
-
-def je(regval,pc,address,labels):
-    if regval["FLAGS"][-1]=="1":
-        pc=int(labels[address],2)
-        return pc
-    return pc+1
-
-def jmp(pc,address,labels):
-    pc=int(labels[address],2)
-    return pc
-
-op={"add":"00000","sub":"00001","movi":"00010","mov":"00011","ld":"00100","st":"00101","mul":"00110","div":"00111","rs":"01000","ls":"01001","xor":"01010","or":"01011","and":"01100","not":"01101","cmp":"01110","jmp":"01111","jlt":"11100","jgt":"11101","je":"11111","hlt":"11010"}
+op={"add":"00000","sub":"00001","movi":"00010","mov":"00011","ld":"00100","st":"00101","mul":"00110","div":"00111","rs":"01000","ls":"01001","xor":"01010","or":"01011","and":"01100","not":"01101","cmp":"01110","jmp":"01111","jlt":"11100","jgt":"11101","je":"11111","hlt":"11010","addf":"10000","subf":"10001","movf":"10010"}
 reg={"R0":"000","R1":"001","R2":"010","R3":"011","R4":"100","R5":"101","R6":"110","FLAGS":"111"}
 regval={"R0":"0000000000000000","R1":"0000000000000000","R2":"0000000000000000","R3":"0000000000000000","R4":"0000000000000000","R5":"0000000000000000","R6":"0000000000000000","FLAGS":"0000000000000000"}
 var={}
@@ -503,6 +437,64 @@ for lines in temp:
                 break
             else:
                 t+=op["je"]+"0000"+labels[line[1]]
+        elif "addf"==line[0]:
+            if len(line)!=4:
+                error=True
+                error_name=f"Error in line {line_no} : add must contain 3 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
+                break
+            elif (line[1] not in reg) or (line[2] not in reg) or (line[3] not in reg):
+                error=True
+                error_name=f"Error in line {line_no} : Invalid register name"
+                break
+            else:
+                t+=op["addf"]+"00"+reg[line[1]]+reg[line[2]]+reg[line[3]]
+        elif "subf" == line[0]:
+            if len(line)!=4:
+                error=True
+                error_name=f"Error in line {line_no} : sub must contain 3 parameters"
+                break
+            elif (line[1]=="FLAGS") or (line[2]=="FLAGS") or (line[3]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} in line no {line_no} : Illegal use of FLAGS register"
+                break
+            elif (line[1] not in reg) or (line[2] not in reg) or (line[3] not in reg):
+                error=True
+                error_name=f"Error in line {line_no} : Invalid register name"
+                break
+            else:
+                t+=op["subf"]+"00"+reg[line[1]]+reg[line[2]]+reg[line[3]]
+        elif ("movf" == line[0]):
+            if len(line)!=3:
+                error=True
+                error_name=f"Error in line {line_no} : mov must contain 2 parameters"
+                break
+            elif "." not in line[2][1:]:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value not a floating point number"
+                break
+            num=floattobin(float(line[2][1:]))
+            if len(num)>8:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value (more than 8 bits)"
+                break
+            elif float(line[2][1:])<0:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
+                break
+            elif line[1]=="FLAGS":
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
+                break
+            elif line[1] not in reg:
+                error=True
+                error_name=f"Error in line {line_no} : Invalid register name"
+                break
+            else:
+                t+=op["movi"]+reg[line[1]]+(8*'0')+num
         elif "hlt" == line[0]:
             if len(line)!=1:
                 error=True
@@ -869,6 +861,64 @@ for lines in temp:
                 break
             else:
                 t+=op["je"]+"0000"+labels[line[2]]
+        elif "addf"==line[1]:
+            if len(line)!=5:
+                error=True
+                error_name=f"Error in line {line_no} : add must contain 3 parameters"
+                break
+            elif (line[2]=="FLAGS") or (line[3]=="FLAGS") or (line[4]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
+                break
+            elif (line[2] not in reg) or (line[3] not in reg) or (line[4] not in reg):
+                error=True
+                error_name=f"Error in line {line_no} : Invalid register name"
+                break
+            else:
+                t+=op["addf"]+"00"+reg[line[2]]+reg[line[3]]+reg[line[4]]
+        elif "subf" == line[0]:
+            if len(line)!=5:
+                error=True
+                error_name=f"Error in line {line_no} : sub must contain 3 parameters"
+                break
+            elif (line[2]=="FLAGS") or (line[3]=="FLAGS") or (line[4]=="FLAGS"):
+                error=True
+                error_name=f"Error in line {line_no} in line no {line_no} : Illegal use of FLAGS register"
+                break
+            elif (line[2] not in reg) or (line[3] not in reg) or (line[4] not in reg):
+                error=True
+                error_name=f"Error in line {line_no} : Invalid register name"
+                break
+            else:
+                t+=op["subf"]+"00"+reg[line[2]]+reg[line[3]]+reg[line[4]]
+        elif ("movf" == line[1]):
+            if len(line)!=4:
+                error=True
+                error_name=f"Error in line {line_no} : mov must contain 2 parameters"
+                break
+            elif "." not in line[3][1:]:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value not a floating point number"
+                break
+            num=floattobin(float(line[3][1:]))
+            if len(num)>8:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value (more than 8 bits)"
+                break
+            elif float(line[3][1:])<0:
+                error=True
+                error_name=f"Error in line {line_no} : Illegal immediate value (-ve number)"
+                break
+            elif line[2]=="FLAGS":
+                error=True
+                error_name=f"Error in line {line_no} : Illegal use of FLAGS register"
+                break
+            elif line[2] not in reg:
+                error=True
+                error_name=f"Error in line {line_no} : Invalid register name"
+                break
+            else:
+                t+=op["movi"]+reg[line[2]]+(8*'0')+num
         elif "hlt" == line[1]:
             if len(line)!=2:
                 error=True
@@ -895,88 +945,6 @@ if not error:
     if error:
         print(error_name)
     else:
-        pc=0
-        flag=True
-        while True:
-            if flag:
-                regval["FLAGS"]="0000000000000000"
-            flag=True
-            bin_pc=format(pc,"07b")
-            if "hlt" in addresses[bin_pc]:
-                break
-            if ":" not in temp[pc].split()[0]:
-                if ("mov" in temp[pc].split()[0]) and (temp[pc].split()[2][0]=="$"):
-                    movImm(regval,temp[pc].split()[1],temp[pc].split()[2][1:])
-                elif ("mov" in temp[pc].split()[0]) and (temp[pc].split()[2][0]!="$"):
-                    movReg(regval,temp[pc].split()[1],temp[pc].split()[2])
-                elif "add" in temp[pc].split()[0]:
-                    add(regval,temp[pc].split()[1],temp[pc].split()[2],temp[pc].split()[3])
-                    flag=False
-                elif "sub" in temp[pc].split()[0]:
-                    sub(regval,temp[pc].split()[1],temp[pc].split()[2],temp[pc].split()[3])
-                    flag=False
-                elif "ld" in temp[pc].split()[0]:
-                    load(regval,temp[pc].split()[1],var,temp[pc].split()[2])
-                elif "mul" in temp[pc].split()[0]:
-                    multiply(regval,temp[pc].split()[1],temp[pc].split()[2],temp[pc].split()[3])
-                    flag=False
-                elif "div" in temp[pc].split()[0]:
-                    divide(regval,temp[pc].split()[1],temp[pc].split()[2])
-                    flag=False
-                elif "st" in temp[pc].split()[0]:
-                    store(regval,temp[pc].split()[1],var,temp[pc].split()[2])
-                elif "cmp" in temp[pc].split()[0]:
-                    cmp(regval,temp[pc].split()[1],temp[pc].split()[2])
-                    flag=False
-                elif "jlt" in temp[pc].split()[0]:
-                    pc=jlt(regval,pc,temp[pc].split()[1],labels)
-                    continue
-                elif "jgt" in temp[pc].split()[0]:
-                    pc=jgt(regval,pc,temp[pc].split()[1],labels)
-                    continue
-                elif "je" in temp[pc].split()[0]:
-                    pc=je(regval,pc,temp[pc].split()[1],labels)
-                    continue
-                elif "jmp" in temp[pc].split()[0]:
-                    pc=jmp(pc,temp[pc].split()[1],labels)
-                    continue
-            else:
-                if ("mov" in temp[pc].split()[1]) and (temp[pc].split()[3][0]=="$"):
-                    movImm(regval,temp[pc].split()[2],temp[pc].split()[3][1:])
-                elif ("mov" in temp[pc].split()[1]) and (temp[pc].split()[3][0]!="$"):
-                    movReg(regval,temp[pc].split()[2],temp[pc].split()[3])
-                elif "add" in temp[pc].split()[1]:
-                    add(regval,temp[pc].split()[2],temp[pc].split()[3],temp[pc].split()[4])
-                    flag=False
-                elif "sub" in temp[pc].split()[1]:
-                    sub(regval,temp[pc].split()[2],temp[pc].split()[3],temp[pc].split()[4])
-                    flag=False
-                elif "ld" in temp[pc].split()[1]:
-                    load(regval,temp[pc].split()[2],var,temp[pc].split()[3])
-                elif "mul" in temp[pc].split()[1]:
-                    multiply(regval,temp[pc].split()[2],temp[pc].split()[3],temp[pc].split()[4])
-                    flag=False
-                elif "div" in temp[pc].split()[1]:
-                    divide(regval,temp[pc].split()[2],temp[pc].split()[3])
-                    flag=False
-                elif "st" in temp[pc].split()[1]:
-                    store(regval,temp[pc].split()[2],var,temp[pc].split()[3])
-                elif "cmp" in temp[pc].split()[1]:
-                    cmp(regval,temp[pc].split()[2],temp[pc].split()[3])
-                    flag=False
-                elif "jlt" in temp[pc].split()[1]:
-                    pc=jlt(regval,pc,temp[pc].split()[2],labels)
-                    continue
-                elif "jgt" in temp[pc].split()[1]:
-                    pc=jgt(regval,pc,temp[pc].split()[2],labels)
-                    continue
-                elif "je" in temp[pc].split()[1]:
-                    pc=je(regval,pc,temp[pc].split()[2],labels)
-                    continue
-                elif "jmp" in temp[pc].split()[1]:
-                    pc=jmp(pc,temp[pc].split()[2],labels)
-                    continue
-            pc+=1
         for i in ans:
             print(i)
 
