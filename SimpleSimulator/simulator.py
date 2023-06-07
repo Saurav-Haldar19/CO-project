@@ -207,3 +207,76 @@ while (pc < len(instructions)):
         elif opcode=="sub":
             if sub(regval,reg1,reg2,reg3):
                 flag=True
+elif opcode=="mul":
+            if multiply(regval,reg1,reg2,reg3):
+                flag=True
+        elif opcode=="xor":
+            xor(regval,reg1,reg2,reg3)
+        elif opcode=="or":
+            Or(regval,reg1,reg2,reg3)
+        elif opcode=="and":
+            And(regval,reg1,reg2,reg3)
+        elif opcode=="addf":
+            if addf(regval,reg1,reg2,reg3):
+                flag=True
+        elif opcode=="subf":
+            if subf(regval,reg1,reg2,reg3):
+                flag=True
+    elif opcode in typeB:
+        reg1=reg[instructions[pc][6:9]]
+        imm=int(instructions[pc][9:],2)
+        if opcode=="movi":
+            movImm(regval,reg1,imm)
+        elif opcode=="rs":
+            rshift(regval,reg1,imm)
+        elif opcode=="ls":
+            lshift(regval,reg1,imm)
+        elif opcode=="movf":
+            movf(regval,reg[instructions[pc][5:8]],instructions[pc][8:])
+    elif opcode in typeC:
+        reg1=reg[instructions[pc][10:13]]
+        reg2=reg[instructions[pc][13:]]
+        if opcode=="mov":
+            movReg(regval,reg1,reg2)
+        elif opcode=="div":
+            if divide(regval,reg1,reg2):
+                flag=True
+        elif opcode=="not":
+            invert(regval,reg1,reg2)
+        elif opcode=="cmp":
+            cmp(regval,reg1,reg2)
+            flag=True
+    elif opcode in typeD:
+        reg1=reg[instructions[pc][6:9]]
+        addr=int(instructions[pc][9:],2)
+        if opcode=="ld":
+            load(regval,memory,reg1,addr)
+        elif opcode=="st":
+            store(regval,memory,reg1,addr)
+    elif opcode in typeE:
+        addr=int(instructions[pc][9:],2)
+        if opcode=="jmp":
+            newpc=jmp(addr)
+        elif opcode=="jlt":
+            newpc=jlt(pc,regval,addr)
+        elif opcode=="jgt":
+            newpc=jgt(pc,regval,addr)
+        elif opcode=="je":
+            newpc=je(pc,regval,addr)
+        if (newpc!=pc):
+            jmpflag=True
+    if not flag:
+        regval["FLAGS"]="0000000000000000"
+    else:
+        flag=False
+    print(format(pc,"07b"),end=" ")
+    print("      ",end=" ")
+    for value in regval.values():
+        print(value,end=" ")
+    print()
+    if jmpflag:
+        pc=newpc
+    else:
+        pc+=1
+for instruction in memory:
+    print(instruction)
