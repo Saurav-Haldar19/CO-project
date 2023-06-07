@@ -182,8 +182,6 @@ Input=sys.stdin
 instructions=[]
 for i in Input:
     instructions.append(i.strip())
-for i in Input:
-    instructions.append(i.strip())
 typeA=["add","sub","mul","xor","or","and","addf","subf"]
 typeB=["movi","rs","ls","movf"]
 typeC=["mov","div","not","cmp"]
