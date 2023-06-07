@@ -32,8 +32,8 @@ def bintofloat(b):
     power=int(exponent,2)-3
     floating=0
     for i in range(5):
-        floating=floating+int(mantissa[i])(2*(-(i+1)))
-    ans=(1+floating)(2*(power))
+        floating=floating+int(mantissa[i])*(2**(-(i+1)))
+    ans=(1+floating)*(2**(power))
     return ans
 
 def movImm(regval,reg,temp):
@@ -141,7 +141,7 @@ def je(program_counter,regval,address):
 
 def jmp(address):
     program_counter=address
-    return program_counter    
+    return program_counter
 
 def addf(regval,reg1,reg2,reg3):
     sum=bintofloat(regval[reg2][8:])+bintofloat(regval[reg3][8:])
@@ -207,7 +207,7 @@ while (pc < len(instructions)):
         elif opcode=="sub":
             if sub(regval,reg1,reg2,reg3):
                 flag=True
-elif opcode=="mul":
+        elif opcode=="mul":
             if multiply(regval,reg1,reg2,reg3):
                 flag=True
         elif opcode=="xor":
